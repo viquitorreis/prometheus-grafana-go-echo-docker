@@ -80,6 +80,29 @@ api-restart:
 	@echo "Restarting API container..."
 	@docker restart echo-api
 
+.PHONY: prom-node-run
+prom-node-run: prom-restart
+	@echo "Running node-exporter container..."
+	@docker run -d \
+		--net monitoring \
+		--name node-exporter \
+		--restart unless-stopped \
+		-p 9100:9100 \
+		-v "/:/host:ro,rslave" \
+		quay.io/prometheus/node-exporter:latest \
+		--path.rootfs=/etc/host \
+
+.PHONY: prom-node-clean
+prom-node-clean:
+	@echo "Stopping and removing node-exporter container..."
+	@docker stop node-exporter || true
+	@docker rm node-exporter || true
+
+.PHONY: prom-node-restart
+prom-node-restart:
+	@echo "Restarting node-exporter container..."
+	@docker restart node-exporter
+
 .PHONY: clean-all
 clean-all: prom-clean grafana-clean
 	@echo "Removing Docker network..."
